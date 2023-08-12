@@ -1,6 +1,8 @@
 using BaseProject.Models;
+using MediatR;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
+using WebApp.Observer.Observer;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -10,6 +12,19 @@ builder.Services.AddControllersWithViews();
 builder.Services.AddDbContext<AppIdentityDbContext>(options =>
     options.UseSqlServer(builder.Configuration.GetConnectionString("SqlServer")));
 
+//MediatR ekledikten sonra buraya gerek kalmadý.
+builder.Services.AddSingleton<UserObserverSubject>(sp =>
+{
+    UserObserverSubject userObserverSubject = new UserObserverSubject(new List<IUserObserver>());
+
+    userObserverSubject.Attach(new UserObserverCreateDiscount(sp));
+    userObserverSubject.Attach(new UserObserverSendEmail(sp));
+    userObserverSubject.Attach(new UserObserverWriteToConsole(sp));
+
+    return userObserverSubject;
+});
+
+builder.Services.AddMediatR(typeof(Program));
 
 builder.Services.AddIdentity<AppUser, IdentityRole>(options =>
 {
