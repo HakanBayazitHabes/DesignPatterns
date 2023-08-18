@@ -1,6 +1,7 @@
 using BaseProject.Models;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
+using WebApp.Composite.Models;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -43,13 +44,39 @@ var userManager = scope.ServiceProvider.GetRequiredService<UserManager<AppUser>>
 
 identityDbContext.Database.Migrate();
 
+
 if (!userManager.Users.Any())
 {
-    userManager.CreateAsync(new AppUser() { UserName = "user1", Email = "user1@gmail.com" }, "Password12*").Wait();
+    var newUser = new AppUser() { UserName = "user1", Email = "user1@gmail.com" };
+    userManager.CreateAsync(newUser, "Password12*").Wait();
     userManager.CreateAsync(new AppUser() { UserName = "user2", Email = "user2@gmail.com" }, "Password12*").Wait();
     userManager.CreateAsync(new AppUser() { UserName = "user3", Email = "user3@gmail.com" }, "Password12*").Wait();
     userManager.CreateAsync(new AppUser() { UserName = "user4", Email = "user4@gmail.com" }, "Password12*").Wait();
     userManager.CreateAsync(new AppUser() { UserName = "user5", Email = "user5@gmail.com" }, "Password12*").Wait();
+
+    var newCategory1 = new Category() { Name = "Suç Romanlarý", UserId = newUser.Id };
+    var newCategory2 = new Category() { Name = "Cinayet Romanlarý", UserId = newUser.Id };
+    var newCategory3 = new Category() { Name = "Polisiye Romanlarý", UserId = newUser.Id };
+
+    identityDbContext.Categories.AddRange(newCategory1, newCategory2, newCategory3);
+
+    identityDbContext.SaveChanges();
+
+    var subCategory1 = new Category() { Name = "Suç Romanlar 1", UserId = newUser.Id, ReferenceId = newCategory1.Id };
+    var subCategory2 = new Category() { Name = "Cinayet Romanlar 1", UserId = newUser.Id, ReferenceId = newCategory2.Id };
+    var subCategory3 = new Category() { Name = "Polisiye Romanlar 1", UserId = newUser.Id, ReferenceId = newCategory3.Id };
+
+    identityDbContext.Categories.AddRange(subCategory1, subCategory2, subCategory3);
+    identityDbContext.SaveChanges();
+
+    var subCategory4 = new Category() { Name = "Cinayet Romanlar 1.1", UserId = newUser.Id, ReferenceId = subCategory2.Id };
+
+    identityDbContext.Categories.Add(subCategory4);
+    identityDbContext.SaveChanges();
+
+
+
+
 }
 
 app.UseHttpsRedirection();
